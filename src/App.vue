@@ -38,12 +38,24 @@
           />
         </div>
 
-        <button type="submit" class="btn custom-btn w-100">Gönder</button>
+        <button
+          type="submit"
+          class="btn custom-btn w-100"
+          :disabled="isSubmitting"
+        >
+          <span v-if="isSubmitting">Yükleniyor...</span>
+          <span v-else>Gönder</span>
+        </button>
       </form>
 
       <div v-if="message" class="alert alert-info mt-4 text-center">
         {{ message }}
       </div>
+    </div>
+
+    <!-- Yükleme Spinner -->
+    <div v-if="isSubmitting" class="spinner-overlay">
+      <div class="spinner"></div>
     </div>
   </div>
 </template>
@@ -55,20 +67,26 @@ const isim = ref('')
 const notText = ref('')
 const selectedFiles = ref([])
 const message = ref('')
+const isSubmitting = ref(false)
 
 const onFilesChange = (event) => {
-  selectedFiles.value = Array.from(event.target.files) // Çoklu dosyaları diziye al
+  selectedFiles.value = Array.from(event.target.files)
 }
 
 const submitForm = async () => {
   try {
+    message.value = ''
+    isSubmitting.value = true
+
     if (!isim.value || !notText.value) {
       message.value = 'İsim ve not girilmelidir.'
+      isSubmitting.value = false
       return
     }
 
     if (selectedFiles.value.length === 0) {
       message.value = 'Lütfen en az bir resim veya video seçin.'
+      isSubmitting.value = false
       return
     }
 
@@ -76,10 +94,10 @@ const submitForm = async () => {
     formData.append('isim', isim.value)
     formData.append('not_text', notText.value)
     selectedFiles.value.forEach(file => {
-      formData.append('photo', file) // Aynı field adına çoklu dosya ekleniyor
+      formData.append('photo', file)
     })
 
-    const res = await fetch('http://localhost:3000/uploads', {
+    const res = await fetch('https://fruity-steaks-cheer.loca.lt/uploads', {
       method: 'POST',
       body: formData
     })
@@ -88,19 +106,21 @@ const submitForm = async () => {
 
     if (!res.ok) {
       message.value = result.error || 'Hata oluştu'
-      return
+    } else {
+      message.value = result.message || 'Başarıyla gönderildi!'
+      isim.value = ''
+      notText.value = ''
+      selectedFiles.value = []
     }
-
-    message.value = result.message || 'Başarıyla gönderildi!'
-    isim.value = ''
-    notText.value = ''
-    selectedFiles.value = []
   } catch (err) {
     console.error(err)
     message.value = 'Sunucu hatası oluştu.'
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
+
 
 <style scoped>
 body {
@@ -111,7 +131,10 @@ body {
 .form-wrapper {
   display: flex;
   justify-content: center;
+  align-items: center;
+  min-height: 100vh;
   padding: 50px 20px;
+  position: relative;
 }
 
 .form-card {
@@ -184,5 +207,37 @@ textarea.custom-input:focus {
   margin: 1.5rem auto 0;
   font-weight: 600;
   color: #cc0066;
+  text-align: center;
 }
+
+/* Spinner overlay */
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Spinner style */
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 6px solid #ffb3d9;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 </style>

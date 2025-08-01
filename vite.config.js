@@ -5,10 +5,6 @@ import Pages from 'vite-plugin-pages'
 export default defineConfig({
   plugins: [
     vue(),
-    Pages(), // 📌 Sayfa yönlendirmeleri için plugin
+    Pages(), // 📌 burada pages plugin'i eklendi
   ],
-  build: {
-    outDir: 'dist',
-  },
 })
-
