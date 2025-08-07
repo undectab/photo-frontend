@@ -97,7 +97,7 @@ const submitForm = async () => {
       formData.append('photo', file)
     })
 
-    const res = await fetch('https://fruity-steaks-cheer.loca.lt/uploads', {
+    const res = await fetch('http://localhost:3000/uploads', {
       method: 'POST',
       body: formData
     })
