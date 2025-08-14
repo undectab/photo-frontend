@@ -1,55 +1,61 @@
 <template>
-  <div class="form-wrapper">
-    <div class="card form-card shadow-lg">
-      <h2 class="form-title mb-4">📸 Fotoğraf / Video Ekle</h2>
+  <div class="page-wrapper">
 
-      <form @submit.prevent="submitForm" enctype="multipart/form-data">
-        <div class="mb-3">
-          <label class="form-label">İsim</label>
-          <input
-            type="text"
-            v-model="isim"
-            class="form-control custom-input"
-            placeholder="İsminizi girin"
-            required
-          />
+<div class="background-image"></div>
+    <div class="overlay"></div>
+    <!-- Form Alanı -->
+    <div class="form-section">
+      <div class="card form-card shadow-lg">
+        <h2 class="form-title mb-4">💌 Berkay & Melike Nişan Hatırası</h2>
+
+        <form @submit.prevent="submitForm" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label class="form-label">İsim</label>
+            <input
+              type="text"
+              v-model="isim"
+              class="form-control custom-input"
+              placeholder="İsminizi girin"
+              required
+            />
+          </div>
+<br></br>
+          <div class="mb-3">
+            <label class="form-label">Not</label>
+            <textarea
+              v-model="notText"
+              class="form-control custom-input"
+              rows="3"
+              placeholder="Notunuzu yazın"
+              required
+            ></textarea>
+          </div>
+<br>
+          <div class="mb-3">
+            <label class="form-label">📷 Resim veya 🎥 Video Seç</label>
+            <input
+              type="file"
+              @change="onFilesChange"
+              class="form-control custom-input"
+              accept="image/*,video/*"
+              multiple
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="btn custom-btn w-100"
+            :disabled="isSubmitting"
+          >
+            <span v-if="isSubmitting">Yükleniyor...</span>
+            <span v-else>Gönder</span>
+          </button>
+        </form>
+
+        <div v-if="message" class="alert alert-info mt-4 text-center">
+          {{ message }}
         </div>
-
-        <div class="mb-3">
-          <label class="form-label">Not</label>
-          <textarea
-            v-model="notText"
-            class="form-control custom-input"
-            rows="3"
-            placeholder="Notunuzu yazın"
-            required
-          ></textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Resim veya Video Seç (Birden Fazla Seçebilirsiniz)</label>
-          <input
-            type="file"
-            @change="onFilesChange"
-            class="form-control custom-input"
-            accept="image/*,video/*"
-            multiple
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          class="btn custom-btn w-100"
-          :disabled="isSubmitting"
-        >
-          <span v-if="isSubmitting">Yükleniyor...</span>
-          <span v-else>Gönder</span>
-        </button>
-      </form>
-
-      <div v-if="message" class="alert alert-info mt-4 text-center">
-        {{ message }}
       </div>
     </div>
 
@@ -57,6 +63,7 @@
     <div v-if="isSubmitting" class="spinner-overlay">
       <div class="spinner"></div>
     </div>
+
   </div>
 </template>
 
@@ -97,61 +104,97 @@ const submitForm = async () => {
       formData.append('photo', file)
     })
 
-    const res = await fetch('http://localhost:3000/uploads', {
+    const res = await fetch('https://api.bmfotograf.com/uploads', {
       method: 'POST',
       body: formData
     })
 
-    const result = await res.json()
-
     if (!res.ok) {
-      message.value = result.error || 'Hata oluştu'
-    } else {
-      message.value = result.message || 'Başarıyla gönderildi!'
-      isim.value = ''
-      notText.value = ''
-      selectedFiles.value = []
+      const errorText = await res.text()
+      message.value = `Sunucu hatası: ${errorText}`
+      return
     }
+
+    const result = await res.json()
+    message.value = result.message || 'Başarıyla gönderildi!'
+    isim.value = ''
+    notText.value = ''
+    selectedFiles.value = []
   } catch (err) {
     console.error(err)
-    message.value = 'Sunucu hatası oluştu.'
+    message.value = 'Sunucu ile bağlantı kurulamadı.'
   } finally {
     isSubmitting.value = false
   }
 }
 </script>
 
-
 <style scoped>
 body {
-  background: linear-gradient(135deg, #ffe6f0, #ffe0f5);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    
+    background: url('../src/assets/davetiye.jpg') no-repeat center center ;
+    background-size: cover;
 }
 
-.form-wrapper {
+.background-image {
+  
+  background: url('../src/assets/davetiye.jpg') no-repeat center center fixed;
+  background-size: cover;
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+.page-wrapper {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+/* Yarı saydam overlay */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 230, 245, 0.7));
+  z-index: -1;
+}
+
+/* Üst görsel */
+.hero-image img {
+  width: 100%;
+  max-height: 500px;
+  object-fit: cover;
+  border-bottom: 5px solid #ffb3d9;
+  box-shadow: 0 4px 20px rgba(255, 102, 163, 0.2);
+}
+form {
+  background-color: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px); /* Arka planı bulanıklaştırır */
+  padding: 20px;
+  border-radius: 10px;
+}
+
+/* Form alanı */
+.form-section {
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 50px 20px;
-  position: relative;
+  padding: 40px 20px;
 }
 
 .form-card {
-  width: 100%;
-  max-width: 600px;
-  background-color: #fff0f6;
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1); /* Daha saydam */
+  backdrop-filter: blur(5px);
+  border-radius: 20px;
   padding: 30px;
-  border: 1px solid #ffb3d9;
-  box-shadow: 0 8px 20px rgba(255, 102, 163, 0.2);
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 8px 30px rgba(255, 102, 163, 0.25);
 }
+
 
 .form-title {
   text-align: center;
   color: #cc0066;
   font-weight: 700;
-  font-size: 2rem;
+  font-size: 1.8rem;
   margin-bottom: 1.5rem;
 }
 
@@ -161,7 +204,6 @@ body {
   font-weight: 600;
   color: #cc0066;
   margin-bottom: 8px;
-  user-select: none;
 }
 
 input.custom-input,
@@ -224,7 +266,6 @@ textarea.custom-input:focus {
   align-items: center;
 }
 
-/* Spinner style */
 .spinner {
   width: 48px;
   height: 48px;
@@ -239,5 +280,4 @@ textarea.custom-input:focus {
     transform: rotate(360deg);
   }
 }
-
 </style>
